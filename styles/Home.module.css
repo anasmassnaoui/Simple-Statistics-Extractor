@@ -15,6 +15,18 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
+}
+
+.chart {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .footer {
@@ -48,6 +60,7 @@
   margin: 0;
   line-height: 1.15;
   font-size: 4rem;
+  padding: 1em;
 }
 
 .title,

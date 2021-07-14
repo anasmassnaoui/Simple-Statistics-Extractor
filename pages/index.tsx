@@ -1,8 +1,111 @@
+import Dragger from 'antd/lib/upload/Dragger'
 import Head from 'next/head'
-import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+import 'antd/dist/antd.css';
+import { InboxOutlined } from '@ant-design/icons';
+import { UploadChangeParam, UploadFile } from 'antd/lib/upload/interface';
+import { message } from 'antd';
+import { useEffect, useState } from 'react';
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import axios from 'axios'
+import { Spin } from 'antd';
+
+const colors = ['#00429d', '#2e59a8', '#4771b2', '#5d8abd', '#73a2c6', '#8abccf', '#a5d5d8', '#c5eddf', '#ffffe0']
+
+
+const Upload = ({ onChange=(info: UploadChangeParam<UploadFile<any>>) => {} }) => {
+
+  return (<Dragger
+    name="file"
+    multiple={false}
+    action="/api/upload"
+    onChange={onChange}>
+    <p className="ant-upload-drag-icon">
+      <InboxOutlined />
+    </p>
+    <p className="ant-upload-text">Click or drag file to this area to upload</p>
+    <p className="ant-upload-hint">
+      please imprt csv file that include the following fields
+      <br />
+      [ 'Student_ID', 'Semster_Name', 'Paper_ID', 'Paper_Name', 'Marks' ]
+    </p>
+  </Dragger>)
+}
+
+const Statistics = () => {
+  const [ isLoading, setIsLoading ] = useState(true)
+  const [ data, setData ] = useState([])
+
+  useEffect(() =>{
+    axios.get("/api/statistics").then(res =>{
+      const statistics = res.data
+      let data: any = []
+      Object.keys(statistics['Marks'].keys).forEach(key => {
+        data.push({
+          name: key,
+          count: statistics['Marks'].keys[key]
+        })
+      });
+      setData(data)
+      setIsLoading(false)
+    })
+  }, [])
+
+  const getPath = (x: number, y: number, width: number, height: number) => `M${x},${y + height}
+          C${x + width / 3},${y + height} ${x + width / 2},${y + height / 3} ${x + width / 2}, ${y}
+          C${x + width / 2},${y + height / 3} ${x + (2 * width) / 3},${y + height} ${x + width}, ${y + height}
+          Z`;
+
+  const TriangleBar = ({x=0, y=0, width=0, height=0, fill='red'} = {}) => {
+    return <path d={getPath(x, y, width, height)} stroke="none" fill={fill} />;
+  };
+
+  return (<ResponsiveContainer className={styles.chart}>
+            { !isLoading ?
+            <BarChart
+              width={500}
+              height={300}
+              data={data}
+              margin={{
+                top: 20,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Bar dataKey="count" fill="#8884d8" shape={<TriangleBar />} label={{ position: 'top' }}>
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={colors[index % 20]} />
+                ))}
+              </Bar>
+            </BarChart> : 
+            <Spin size="large" />
+            }
+          </ResponsiveContainer>)
+
+}
 
 export default function Home() {
+
+  const [ isUploading, setIsUploading ] = useState(true)
+
+  const onChange = (info: UploadChangeParam<UploadFile<any>>) => {
+    const { status } = info.file
+
+    if (status !== 'uploading') {
+      console.log(info.file, info.fileList);
+    }
+    if (status === 'done') {
+      message.success(`${info.file.name} file uploaded successfully.`);
+      setIsUploading(false)
+    } else if (status === 'error') {
+      message.error(`${info.file.name} file upload failed.`);
+    }
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -13,56 +116,15 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
+          Statistics Extractor
         </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+      { isUploading ?
+          <Upload onChange={onChange} /> :
+          <Statistics />
+      }
       </main>
-
       <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
+          Hola
       </footer>
     </div>
   )
