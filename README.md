@@ -1,6 +1,7 @@
 ## Simple Statistics Extractor
 
-is a NextJs project that made as POC on a study that requested by our university of how we can upload a simple csv file and do some statistics on it
+Is a NextJs project that made as POC on a study that requested by our university of how we can upload a simple csv file and do some statistics on it.
+<br />
 <br />
 PS: The CSV file must contain the following columns : 'Student_ID', 'Semster_Name', 'Paper_ID', 'Paper_Name', 'Marks'
 
